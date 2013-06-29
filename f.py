@@ -68,15 +68,66 @@ def compile_constant(name, value):
     memory[here] = 41
     here += 1
 
+"""ITABLE = {
+"IPOP":0x28,
+"NXT":0x29,
+"CALL":0x2a,
+"CRX":0x2b,
+
+"TSX":0x08,
+"TRX":0x09,
+"TPX":0x0a,
+"TIX":0x0b,
+
+"BRK":0x00,
+
+"RPHX":0x01,
+"RPHY":0x02,
+"RPHZ":0x03,
+"RPX":0x10,
+"RPLX":0x11,
+"RPLY":0x12,
+"RPLZ":0x13,
+
+"PSX":0x20,
+"PHX":0x21,
+"PHY":0x22,
+"PHZ":0x23,
+"SPX":0x30,
+"PLX":0x31,
+"PLY":0x32,
+"PLZ":0x33,
+
+"RXX":0x04,
+"RXY":0x05,
+"RYX":0x06,
+"RYY":0x07,
+
+"CRXX":0x14,
+"CRXY":0x15,
+"CRYX":0x16,
+"CRYY":0x17,
+
+"WXY":0x25,
+"WYX":0x26,
+"CWXY":0x35,
+"CWYX":0x36,
+
+}"""
+
+
 def compile_assembly(name, l):
     global here
     header(name)
     for inst in l:
         memory[here] = to_int(inst)
+        #memory[here] = ITABLE[inst]
         here += 1
 
+squit = []
 def compile_def(name, l, immed=False):
     global here
+    global squit
     header(name)
     if immed:
         memory[here-1] |= 128
@@ -84,7 +135,7 @@ def compile_def(name, l, immed=False):
     here += 1
     i = 0
     stack = []
-    print(name)
+    #print(name)
     while i<len(l):
         #print(stack)
         word = l[i]
@@ -166,21 +217,22 @@ def compile_def(name, l, immed=False):
             setmemory(here, df["(do)"])
             here += 2
             stack.append(here)
-            stack.append(-1)
+            here += 2
+            stack.append(here)
         elif word == "?DO":
             setmemory(here, df["(?do)"])
             here += 2
-            setmemory(here, -1)
+            stack.append(here)
             here += 2
             stack.append(here)
-            stack.append(here-2)
-            stack.append(0)
         elif word == "LOOP":
             setmemory(here, df["(loop)"])
             here += 2
-            if stack.pop()==0:
-                setmemory(stack.pop(), here+2)
             setmemory(here, stack.pop())
+            here += 2
+            setmemory(stack.pop(), here)
+        elif word == "QUIT":
+            squit.append(here)
             here += 2
         else:
             setmemory(here, df[word])
@@ -201,7 +253,8 @@ for i in lf:
     elif len(k)>=3 and k[1] == "CONSTANT" and k[0]!=":":
         compile_constant(k[2],k[0])
     elif len(k)>=3:
-        if k[0] == "\\":
+        #print(k[0])
+        if k[0][0] == "\\":
             continue
         if state=="forth":
             if k[-1] == "IMMEDIATE":
@@ -211,6 +264,9 @@ for i in lf:
         else:
             compile_assembly(k[1],k[2:-1])
 
+for i in squit:
+    setmemory(i, df["QUIT"])
+    
 memory[0x108]=10
 memory[0x400]=0x4d
 setmemory(0x401, df["COLD"])
@@ -229,10 +285,10 @@ f.close()
 f = open('forth.dico','w')
 f.write(str(df))
 f.close()
-print(memory)
+#print(memory)
 
 f2=open("forth.bin","wb")
 for i in memory:
     f2.write(chr(i))
 f2.close()
-print([getc(i) for i in []])
+#print([getc(i) for i in []])

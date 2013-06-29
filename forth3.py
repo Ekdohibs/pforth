@@ -4,6 +4,7 @@ import time
 
 w=curses.initscr()
 w.nodelay(1)
+w.scrollok(True)
 curses.noecho()
 curses.raw()
 
@@ -106,8 +107,8 @@ ITABLE = {
     0x48:"self.Z=u16(self.Z-1)",
 
     0x49:"self.X=u16(self.X+1)",
-    0x4a:"self.Y=u16(self.X+1)",
-    0x4b:"self.Z=u16(self.X+1)",
+    0x4a:"self.Y=u16(self.Y+1)",
+    0x4b:"self.Z=u16(self.Z+1)",
 
     0x4d:"self.X=self.read(self.PC)\nself.PC=u16(self.PC+2)",
     0x4e:"self.Y=self.read(self.PC)\nself.PC=u16(self.PC+2)",
@@ -115,8 +116,10 @@ ITABLE = {
 
     0x50:"self.X=w.getch()",
     #0x50:"self.X=ord(input()[0])",
-    0x51:"self.insts.append(0)\nif self.X==0x80:\n  print(self.insts)\nif self.X==0x7f:\n  y,x=w.getyx()\n  x-=1\n  w.delch(y,x)\n  w.move(y,x)\nelse:\n  w.echochar(self.X)",
+    0x51:"self.insts.append(0)\nif self.X==0x80:\n  print(self.insts)\nif self.X==0x7f:\n  y,x=w.getyx()\n  x-=1\n  w.delch(y,x)\n  w.move(y,x)\nelse:\n  try:\n    w.echochar(self.X)\n  except:\n    w.erase()\n    w.move(0,0)\n    w.echochar(self.X)",
+    #0x51:"self.insts.append(0)\nif self.X==0x80:\n  print(self.insts)\nif self.X==0x7f:\n  y,x=w.getyx()\n  x-=1\n  w.delch(y,x)\n  w.move(y,x)\nelse:\n  w.echochar(self.X)",
     #0x51:"print(chr(self.X),end='')\ntime.sleep(0.1)",
+    0x52: "print(self.X, self.Y, self.Z, self.I, self.SP)",
 }
 
 class ForthVM:
