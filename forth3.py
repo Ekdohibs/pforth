@@ -24,6 +24,11 @@ def s32(x):
 def u32(x):
     return x&0xffffffff
 
+def shift(n, dep):
+    if dep>=0:
+        return n<<min(16, dep)
+    return n>>-dep
+
 ITABLE = {
     0x28:"self.I=self.rpop()",
     0x29:"self.PC=self.read(self.I)\nself.I=u16(self.I+2)",
@@ -75,14 +80,14 @@ ITABLE = {
     0x0e:"n=self.X*self.Y\nself.Y=u16(n)\nself.X=u16(n>>16)", # UM*
     0x0f:"n=s16(self.X)*s16(self.Y)\nself.Y=u16(n)\nself.X=u16(n>>16)", # M*
     0x1e:"n=(self.X<<16)+self.Y\nself.Y=u16(n//self.Z)\nself.X=u16((n//self.Z)>>16)\nself.Z=u16(n%self.Z)",
-    0x1f:"n=s32((self.X<<16)+self.Y)\nself.Y=u16(n//s16(self.Z))\nself.X=u16((n//s16(self.Z))>>16)\nself.Z=u16(n%(s16(self.Z))",
+    0x1f:"n=s32((self.X<<16)+self.Y)\nself.Y=u16(n//s16(self.Z))\nself.X=u16((n//s16(self.Z))>>16)\nself.Z=u16(n%(s16(self.Z)))",
     0x2c:"self.X=u16(self.X&self.Y)",
     0x2d:"self.X=u16(self.X|self.Y)",
     0x2e:"self.X=u16(self.X^self.Y)",
     0x2f:"self.X=u16(~self.X)",
     0x3c:"self.X>>=self.Y",
     0x3d:"self.X=u16(s16(self.X)>>self.Y)",
-    0x3e:"self.X=u16(self.X<<min(16,self.Y))\nself.Y=u16(self.X<<min(16, max(0, self.Y-16)))",
+    0x3e:"n=self.X\nself.X=u16(n<<min(16,self.Y))\nself.Y=u16(shift(n, self.Y-16))",
     0x3f:"if s16(self.Y)<0:  self.X=u16(-1)\nelse:\n  self.X=0",
 
     0x38:"self.PC=u16(self.PC+self.read(self.PC))\nself.PC=u16(self.PC+2)",
