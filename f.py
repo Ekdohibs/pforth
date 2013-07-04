@@ -1,9 +1,25 @@
-f = open('forth2.f','r')
+f = open('forth2.fth','r')
 lf = f.readlines()
 f.close()
 df = {}
-"""for i in lf:
+def is_int(x):
+    if x[:2]=="0x":
+        try:
+            a=int(x[2:],16)
+            return True
+        except:
+            return False
+    try:
+        a=int(x)
+        return True
+    except:
+        return False
+        
+print("Missing words:")
+for i in lf:
     k = i.split()
+    if len(k)>=1 and k[0] == "\\":
+        continue
     if len(k)>=3 and k[1] == "CONSTANT" and k[0]!=":":
         df[k[2]] = [k[0]]
     elif len(k)>=3:
@@ -21,7 +37,7 @@ for l in df.values():
     for i in l:
         if df.get(i, None)==None and not is_int(i) and i not in lcore and i not in k and i[:2]!="0x":
             k.append(i)
-            print(i)"""
+            print(i)
 
 def setmemory(addr, value):
     memory[addr] = value&0xff

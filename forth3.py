@@ -127,6 +127,14 @@ ITABLE = {
     0x52: "print(self.X, self.Y, self.Z, self.I, self.SP)",
 }
 
+def indent(s):
+    return '\n'.join(["  "+i for i in s.split("\n")])
+
+for i in ITABLE.keys():
+    d={}
+    exec("def f(self):\n"+indent(ITABLE[i]),globals(),d)
+    ITABLE[i] = d["f"]
+
 class ForthVM:
     def __init__(self):
         self.memory = [0]*0x10000
@@ -146,11 +154,11 @@ class ForthVM:
         self.memory[addr]=value&0xff
 
     def read(self,addr):
-        return self.memory[addr]+(self.memory[addr+1]<<8)
+        return self.memory[addr]+(self.memory[u16(addr+1)]<<8)
 
     def write(self,addr,value):
         self.memory[addr]=value&0xff
-        self.memory[addr+1]=(value>>8)&0xff
+        self.memory[u16(addr+1)]=(value>>8)&0xff
 
     def push(self,value):
         self.SP+=2
@@ -188,7 +196,8 @@ class ForthVM:
                 self.printstack()#"""
             instr = self.memory[self.PC]
             self.PC += 1
-            exec(ITABLE[instr])
+            #exec(ITABLE[instr])
+            ITABLE[instr](self)
             if self.paused:
                 time.sleep(0.01)
                 self.paused=False
